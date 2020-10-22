@@ -1,0 +1,37 @@
+from selenium import webdriver
+import csv
+from csv import reader
+from csv import writer
+ 
+driver = webdriver.Firefox()
+driver.get("https://qaautocand.hcm.ondemand.com/provisioning_login")
+driver.find_element_by_name("username").send_keys("SFV4")
+driver.find_element_by_name("password").send_keys("sfv4")
+driver.find_element_by_name("Login").submit()
+
+driver.implicitly_wait(10)
+driver.find_element_by_link_text("show all...").click()
+
+with open('output3.csv','w') as outputfile:
+	writer = csv.writer(outputfile)
+	with open('small-file.csv','r') as sourcefile:
+		list = reader(sourcefile)
+		for company in list:
+			for companyname in company:
+				if driver.find_elements_by_link_text(companyname):
+					driver.find_element_by_link_text(companyname).click()
+					if driver.find_elements_by_xpath("//*[text()='Company Settings']"):
+						driver.find_element_by_link_text("Company Settings").click()
+						if driver.find_elements_by_xpath("//*[text()='The company instance is ']"):
+							writer.writerow(["Company Settings found and loaded fine for "+companyname])
+							driver.find_element_by_link_text("show all...").click()
+						else:
+							writer.writerow(["Company Settings found but not loaded fine for "+companyname])	
+							driver.find_element_by_link_text("show all...").click()	
+					else:
+						writer.writerow(["Company Settings not found for "+companyname])
+						driver.back()
+				else:
+					writer.writerow(["Invalid instance "+companyname])
+
+
